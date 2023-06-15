@@ -13,7 +13,13 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    command: python manage.py createsuperuser --email=admin@example.com && gunicorn SF_docker_final.wsgi:application --bind 0.0.0.0:8000
+    command: sh -c "python manage.py migrate && python manage.py createsuperuser --noinput && gunicorn SF_docker_final.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_volume:/app/web/static
+    environment:
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
     expose:
       - 8000
     env_file:
@@ -22,6 +28,8 @@ services:
       - db
   nginx:
     build: ./nginx
+    volumes:
+      - static_volume:/app/web/static
     ports:
       - 80:80
     depends_on:
@@ -29,3 +37,4 @@ services:
 
 volumes:
   postgres_data:
+  static_volume:
